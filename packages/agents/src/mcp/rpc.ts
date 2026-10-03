@@ -12,11 +12,27 @@ import type {
   JSONRPCMessage as V1JSONRPCMessage,
   MessageExtraInfo as V1MessageExtraInfo
 } from "@modelcontextprotocol/sdk/types.js";
-import {
-  isJSONRPCErrorResponse,
-  isJSONRPCResultResponse,
-  JSONRPCMessageSchema
-} from "@modelcontextprotocol/sdk/types.js";
+type McpJsonRpcRuntime = Pick<
+  typeof import("@modelcontextprotocol/sdk/types.js"),
+  "isJSONRPCErrorResponse" | "isJSONRPCResultResponse" | "JSONRPCMessageSchema"
+>;
+
+let mcpJsonRpcRuntimePromise: Promise<McpJsonRpcRuntime> | undefined;
+
+function loadMcpJsonRpcRuntime(): Promise<McpJsonRpcRuntime> {
+  return (mcpJsonRpcRuntimePromise ??=
+    import("@modelcontextprotocol/sdk/types.js").then(
+      ({
+        isJSONRPCErrorResponse,
+        isJSONRPCResultResponse,
+        JSONRPCMessageSchema
+      }) => ({
+        isJSONRPCErrorResponse,
+        isJSONRPCResultResponse,
+        JSONRPCMessageSchema
+      })
+    ));
+}
 
 type JSONRPCMessage = V1JSONRPCMessage;
 type MessageExtraInfo = V1MessageExtraInfo;
@@ -183,6 +199,7 @@ export class RPCServerTransport implements V1Transport {
     if (this._started) {
       throw new Error("Transport already started");
     }
+    await loadMcpJsonRpcRuntime();
     this._started = true;
   }
 
@@ -269,7 +286,11 @@ export class RPCServerTransport implements V1Transport {
       throw new Error("Transport not started");
     }
 
-    if (isJSONRPCResultResponse(message) || isJSONRPCErrorResponse(message)) {
+    const runtime = await loadMcpJsonRpcRuntime();
+    if (
+      runtime.isJSONRPCResultResponse(message) ||
+      runtime.isJSONRPCErrorResponse(message)
+    ) {
       const id = message.id;
       if (id === undefined) {
         this.onerror?.(
@@ -384,7 +405,7 @@ export class RPCServerTransport implements V1Transport {
     }
 
     try {
-      JSONRPCMessageSchema.parse(message);
+      (await loadMcpJsonRpcRuntime()).JSONRPCMessageSchema.parse(message);
     } catch {
       const id =
         typeof message === "object" && message !== null && "id" in message

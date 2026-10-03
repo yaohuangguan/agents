@@ -28,48 +28,24 @@ import {
 } from "./catalog";
 import type { AgentMcpOAuthProvider } from "./do-oauth-client-provider";
 import { createMcpSdkClient, normalizeMcpClientOptions } from "./runtime";
-export { elicitationCapabilitiesFromHandlers } from "./runtime";
 import {
   isTransportNotImplemented,
   isUnauthorized,
   toErrorMessage
 } from "./errors";
 import { RPCClientTransport, type RPCClientTransportOptions } from "../rpc";
+import {
+  MCPConnectionState,
+  type MCPConnectionState as MCPConnectionStateType
+} from "./state";
+export { elicitationCapabilitiesFromHandlers } from "./capabilities";
+export { MCPConnectionState } from "./state";
 import type {
   BaseTransportType,
   HttpTransportType,
   TransportType,
   McpClientOptions
 } from "../types";
-
-/**
- * Connection state machine for MCP client connections.
- *
- * State transitions:
- * - Non-OAuth: init() → CONNECTING → DISCOVERING → READY
- * - OAuth: init() → AUTHENTICATING → (callback) → CONNECTING → DISCOVERING → READY
- * - Any state can transition to FAILED on error
- */
-export const MCPConnectionState = {
-  /** Waiting for OAuth authorization to complete */
-  AUTHENTICATING: "authenticating",
-  /** Establishing transport connection to MCP server */
-  CONNECTING: "connecting",
-  /** Transport connection established */
-  CONNECTED: "connected",
-  /** Discovering server capabilities (tools, resources, prompts) */
-  DISCOVERING: "discovering",
-  /** Fully connected and ready to use */
-  READY: "ready",
-  /** Connection failed at some point */
-  FAILED: "failed"
-} as const;
-
-/**
- * Connection state type for MCP client connections.
- */
-export type MCPConnectionState =
-  (typeof MCPConnectionState)[keyof typeof MCPConnectionState];
 
 /**
  * Transport options for MCP client connections.
@@ -85,7 +61,7 @@ export type MCPTransportOptions = (
 };
 
 export type MCPClientConnectionResult = {
-  state: MCPConnectionState;
+  state: MCPConnectionStateType;
   error?: Error;
   transport?: BaseTransportType;
 };

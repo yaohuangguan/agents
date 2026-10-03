@@ -142,7 +142,7 @@ import type {
   WorkflowPage,
   AgentWorkflowOrigin
 } from "./workflow-types";
-import { MCPConnectionState } from "./mcp/client/connection";
+import { MCPConnectionState } from "./mcp/client/state";
 import {
   DurableObjectOAuthClientProvider,
   type AgentMcpOAuthProvider

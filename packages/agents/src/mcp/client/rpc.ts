@@ -1,5 +1,5 @@
 import type { MCPClientManager } from "./index";
-import { MCPConnectionState } from "./connection";
+import { MCPConnectionState } from "./state";
 import { decodeMcpServerOptions, type MCPServerRow } from "./storage";
 import { isDurableObjectNamespace, RPC_DO_PREFIX } from "../rpc";
 

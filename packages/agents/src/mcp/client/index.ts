@@ -21,13 +21,13 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import { Emitter, type Event, DisposableStore } from "../../core/events";
 import type { MCPObservabilityEvent } from "../../observability/mcp";
-import {
-  elicitationCapabilitiesFromHandlers,
+import { elicitationCapabilitiesFromHandlers } from "./capabilities";
+import { MCPConnectionState } from "./state";
+import type {
   MCPClientConnection,
-  MCPConnectionState,
-  type MCPDiscoveryResult,
-  type MCPElicitationHandlers,
-  type MCPTransportOptions
+  MCPDiscoveryResult,
+  MCPElicitationHandlers,
+  MCPTransportOptions
 } from "./connection";
 import {
   callV2Tool,
@@ -1066,7 +1066,7 @@ export class MCPClientManager extends LifecycleCapability {
       }
 
       // Create the in-memory connection object (no need to save to storage - we just read from it!)
-      const conn = this.createConnection(server.id, server.server_url, {
+      const conn = await this.createConnection(server.id, server.server_url, {
         client: parsedOptions?.client ?? {},
         transport: {
           ...(parsedOptions?.transport ?? {}),
@@ -1248,7 +1248,7 @@ export class MCPClientManager extends LifecycleCapability {
         await replaced.close().catch(() => {});
         this.updateStoredSession(id, undefined);
       }
-      this.createConnection(id, url, {
+      await this.createConnection(id, url, {
         client: options.client,
         transport: options.transport ?? {}
       });
@@ -1335,7 +1335,7 @@ export class MCPClientManager extends LifecycleCapability {
    * Does NOT save to storage - use registerServer() for that
    * @returns The connection object (existing or newly created)
    */
-  private createConnection(
+  private async createConnection(
     id: string,
     url: string,
     options: {
@@ -1343,7 +1343,7 @@ export class MCPClientManager extends LifecycleCapability {
       transport: MCPTransportOptions;
       discoverResult?: DiscoverResult;
     }
-  ): MCPClientConnection {
+  ): Promise<MCPClientConnection> {
     // Return existing connection if already exists
     if (this.mcpConnections[id]) {
       return this.mcpConnections[id];
@@ -1361,6 +1361,8 @@ export class MCPClientManager extends LifecycleCapability {
     // death before connect) doesn't burn it — it is consumed at first use,
     // once a seeded handshake completes.
     const capabilitySeed = this.getStoredServerOptions(id)?.capabilities;
+
+    const { MCPClientConnection } = await import("./connection");
 
     this.mcpConnections[id] = new MCPClientConnection(
       new URL(url),
@@ -1461,7 +1463,7 @@ export class MCPClientManager extends LifecycleCapability {
     }
 
     // Create the in-memory connection.
-    this.createConnection(id, options.url, {
+    await this.createConnection(id, options.url, {
       client: options.client,
       transport: {
         ...options.transport,

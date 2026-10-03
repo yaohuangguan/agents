@@ -2069,7 +2069,7 @@ describe("MCPClientManager OAuth Integration", () => {
         const name = "Test Server";
         const callbackUrl = "http://localhost:3000/callback";
 
-        manager.registerServer(id, {
+        await manager.registerServer(id, {
           url,
           name,
           callbackUrl,
@@ -2099,7 +2099,7 @@ describe("MCPClientManager OAuth Integration", () => {
         const callbackUrl = "http://localhost:3000/callback";
 
         // Register once
-        manager.registerServer(id, {
+        await manager.registerServer(id, {
           url,
           name,
           callbackUrl,
@@ -2109,7 +2109,7 @@ describe("MCPClientManager OAuth Integration", () => {
         const firstConnection = manager.mcpConnections[id];
 
         // Try to register again
-        manager.registerServer(id, {
+        await manager.registerServer(id, {
           url,
           name,
           callbackUrl,
@@ -2133,7 +2133,7 @@ describe("MCPClientManager OAuth Integration", () => {
         const authUrl = "https://auth.example.com/authorize";
         const clientId = "test-client-id";
 
-        manager.registerServer(id, {
+        await manager.registerServer(id, {
           url,
           name,
           callbackUrl,
@@ -2194,7 +2194,7 @@ describe("MCPClientManager OAuth Integration", () => {
         };
 
         // Register server with auth provider
-        manager.registerServer(id, {
+        await manager.registerServer(id, {
           url,
           name,
           callbackUrl,
@@ -2932,7 +2932,7 @@ describe("MCPClientManager OAuth Integration", () => {
         const callbackUrl = "http://localhost:3000/callback";
 
         // Register server
-        manager.registerServer(id, {
+        await manager.registerServer(id, {
           url,
           name,
           callbackUrl,
@@ -3017,7 +3017,7 @@ describe("MCPClientManager OAuth Integration", () => {
         const server2Id = "server-2";
 
         // Register and connect first server
-        manager.registerServer(server1Id, {
+        await manager.registerServer(server1Id, {
           url: "http://server1.com/mcp",
           name: "Server 1",
           callbackUrl: "http://localhost:3000/callback",
@@ -3043,7 +3043,7 @@ describe("MCPClientManager OAuth Integration", () => {
         await manager.connectToServer(server1Id);
 
         // Register and connect second server
-        manager.registerServer(server2Id, {
+        await manager.registerServer(server2Id, {
           url: "http://server2.com/mcp",
           name: "Server 2",
           callbackUrl: "http://localhost:3000/callback",
@@ -3413,7 +3413,7 @@ describe("MCPClientManager OAuth Integration", () => {
         specs: ServerSpec[]
       ) {
         for (const spec of specs) {
-          manager.registerServer(spec.id, {
+          await manager.registerServer(spec.id, {
             url: `http://${spec.id}.example.com/mcp`,
             name: spec.name,
             callbackUrl: "http://localhost:3000/callback",
